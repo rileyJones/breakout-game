@@ -39,21 +39,6 @@ public class BreakoutGame extends StateBasedGame{
 		controller.update(container.getInput(), delta);
 	}
 	
-	@Override
-	protected void preRenderState(GameContainer container, Graphics g) throws SlickException {
-		super.preRenderState(container, g);
-		if(controller.buttonRepressed(KEY_PAUSE, 200)) {
-			g.setBackground(Color.blue);
-		} else if(controller.buttonPressed(KEY_ACT)) {
-			g.setBackground(Color.red);
-		} else if(controller.buttonHeld(KEY_SHOOT)) {
-			g.setBackground(Color.green);
-		} else {
-			g.setBackground(Color.black);
-		}
-	}
-	
-	
 	public static void main(String[] args) {
 		try {
 			AppGameContainer app = new AppGameContainer(new BreakoutGame("Breakout - Riley Jones"));
