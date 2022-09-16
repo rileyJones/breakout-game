@@ -143,7 +143,7 @@ public class Physics {
 		int tempDelta = doBoxClip(aBox, aVel, bBox, bVel, delta);
 		DIRECTION boxCollideDirection = getBoxCollideDirection(aBox, aVel, bBox, bVel);
 		DIRECTION velocityDirection = getVelocityDirection(boxCollideDirection, aVel, bVel);
-		System.out.println(aVel.y + ", " + bVel.y);
+		//System.out.println(aVel.y + ", " + bVel.y);
 		switch(boxCollideDirection) {
 			case X_MINUS:
 			case X_PLUS:
@@ -177,18 +177,18 @@ public class Physics {
 			return new float[] {u1,u2};
 		} else if( m1 == -1 || m2 == 0) {
 			if(u2 > 0) {
-				u2 = Math.min(u1, -u2);
+				u2 = Math.min(u1, sqrt(F)*(u1-u2));
 			} else if(u2 < 0) {
-				u2 = Math.max(u1, -u2);
+				u2 = Math.max(u1, sqrt(F)*(u1-u2));
 			} else {
 				u2 = u1;
 			}
 			return new float[] {u1,u2*F};
 		} else if( m2 == -1 || m1 == 0) {
 			if(u1 > 0) {
-				u1 = Math.min(u2, -u1);
+				u1 = Math.min(u2, sqrt(F)*(u2-u1));
 			} else if(u2 < 0) {
-				u1 = Math.max(u2, -u1);
+				u1 = Math.max(u2, sqrt(F)*(u2-u1));
 			} else {
 				u1 = u2;
 			}

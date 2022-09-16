@@ -26,7 +26,6 @@ public class BreakoutGame extends StateBasedGame{
 	public static final int KEY_PAUSE = 6;
 	Controller controller;
 	
-
 	public BreakoutGame(String name) {
 		super(name);
 	}
