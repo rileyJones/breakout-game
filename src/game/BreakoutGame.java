@@ -8,7 +8,12 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
+import components.Box;
+import components.Mass;
+import components.Velocity;
 import controller.Controller;
+import physics.Physics;
+import etc.Common;
 
 public class BreakoutGame extends StateBasedGame{
 
@@ -21,6 +26,7 @@ public class BreakoutGame extends StateBasedGame{
 	public static final int KEY_PAUSE = 6;
 	Controller controller;
 	
+
 	public BreakoutGame(String name) {
 		super(name);
 	}
@@ -30,7 +36,6 @@ public class BreakoutGame extends StateBasedGame{
 		controller = new Controller(new int[] {
 				Input.KEY_LEFT, Input.KEY_DOWN, Input.KEY_UP, Input.KEY_RIGHT, Input.KEY_Z, Input.KEY_X, Input.KEY_ENTER
 				});
-		
 	}
 	
 	@Override
@@ -43,7 +48,7 @@ public class BreakoutGame extends StateBasedGame{
 		try {
 			AppGameContainer app = new AppGameContainer(new BreakoutGame("Breakout - Riley Jones"));
 			app.setDisplayMode(896, 672, false);
-			app.setVSync(true);
+			//app.setVSync(true);
 			app.start();
 		} catch (SlickException e) {
 			// TODO Auto-generated catch block
