@@ -54,7 +54,7 @@ public class BreakoutGame extends StateBasedGame{
 		bMass = new Mass(1.0f);
 		pVel = new Velocity(0,0);
 		cBox = new Box(0, container.getHeight()*15/16f, container.getWidth(), container.getHeight()/16f);
-		cVel = new Velocity(0,0);
+		cVel = new Velocity(0,-0.01f);
 		cMass = new Mass(-1);
 	}
 	
@@ -79,6 +79,7 @@ public class BreakoutGame extends StateBasedGame{
 		Physics.doVelocity(aBox, aVel, 0, 0, delta);
 		Physics.doVelocity(aBox, pVel, 0, 0, delta);
 		Physics.doVelocity(bBox, bVel, 0, 0, delta);
+		Physics.doVelocity(cBox, cVel, 0, 0, delta);
 		Physics.doAcceleration(aBox, aVel, 0.0001f*-Common.sign(aVel.x), 0.0001f*-Common.sign(aVel.y), delta);
 		//Physics.doAcceleration(bBox, bVel, 0.0001f*-Common.sign(bVel.x), 0.0001f*-Common.sign(bVel.y), delta);
 		Physics.doAcceleration(bBox, bVel, 0, 0.0001f, delta);
@@ -88,7 +89,7 @@ public class BreakoutGame extends StateBasedGame{
 			Physics.doInelasticCollision(aBox, aVel, aMass, bBox, bVel, bMass, delta, 0.9f);
 		}
 		if(cBox.r.intersects(bBox.r)) {
-			Physics.doInelasticCollision(cBox, cVel, cMass, bBox, bVel, bMass, delta, 0.9f);
+			Physics.doInelasticCollision(cBox, cVel, cMass, bBox, bVel, bMass, delta, 1f);
 		}
 		aVel.subtract(pVel);
 		//System.out.println(aVel.x);
@@ -99,8 +100,8 @@ public class BreakoutGame extends StateBasedGame{
 		super.preRenderState(container, g);
 		g.setBackground(Color.black);
 		g.setColor(Color.white);
-		g.draw(aBox.r);
-		g.draw(bBox.r);
+		//g.draw(aBox.r);
+		//g.draw(bBox.r);
 		g.setColor(Color.yellow);
 		g.fill(aBox.r);
 		g.setColor(Color.blue);
