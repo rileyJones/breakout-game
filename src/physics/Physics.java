@@ -59,31 +59,6 @@ public class Physics {
 		}
 	}
 	
-	private static DIRECTION getVelocityDirection(DIRECTION d, Velocity aVel, Velocity bVel) {
-		switch(d) {
-			case X_MINUS:
-			case X_PLUS:
-				if(aVel.x - bVel.x > 0) {
-					return DIRECTION.X_PLUS;
-				} else if(aVel.x - bVel.x < 0){
-					return DIRECTION.X_MINUS;
-				} else {
-					return null;
-				}
-			case Y_MINUS:
-			case Y_PLUS:
-				if(aVel.y - bVel.y > 0) {
-					return DIRECTION.Y_PLUS;
-				} else if(aVel.y - bVel.y < 0){
-					return DIRECTION.Y_MINUS;
-				} else {
-					return null;
-				}
-			default:
-				return null;
-		}
-	}
-	
 	public static void doAcceleration(Box aBox, Velocity aVel, float x, float y, int delta) {
 		aVel.x += x;
 		aVel.y += y;
@@ -142,8 +117,6 @@ public class Physics {
 	public static void doInelasticCollision(Box aBox, Velocity aVel, Mass aMass, Box bBox, Velocity bVel, Mass bMass, int delta, float factor) {
 		int tempDelta = doBoxClip(aBox, aVel, bBox, bVel, delta);
 		DIRECTION boxCollideDirection = getBoxCollideDirection(aBox, aVel, bBox, bVel);
-		DIRECTION velocityDirection = getVelocityDirection(boxCollideDirection, aVel, bVel);
-		//System.out.println(aVel.y + ", " + bVel.y);
 		switch(boxCollideDirection) {
 			case X_MINUS:
 			case X_PLUS:
@@ -167,9 +140,6 @@ public class Physics {
 		}
 		Physics.doVelocity(aBox, aVel, 0, 0, tempDelta);
 		Physics.doVelocity(bBox, bVel, 0, 0, tempDelta);
-		//if(aBox.r.intersects(bBox.r)) {
-		//	doBoxClip(aBox, aVel, bBox, bVel, delta);
-		//}
 	}
 	
 	private static float[] inelasticCollisionFormula(float m1, float m2, float u1, float u2, float F) {

@@ -1,19 +1,12 @@
 package game;
 
 import org.newdawn.slick.AppGameContainer;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
-import components.Box;
-import components.Mass;
-import components.Velocity;
 import controller.Controller;
-import physics.Physics;
-import etc.Common;
 
 public class BreakoutGame extends StateBasedGame{
 
