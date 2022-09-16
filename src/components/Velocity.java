@@ -6,7 +6,20 @@ public class Velocity extends Component {
 		this.x = x;
 		this.y = y;
 	}
+	public Velocity(Velocity a, Velocity b) {
+		this.x = a.x+b.x;
+		this.y = a.y+b.y;
+	}
 	public TRAIT ID() {
 		return TRAIT.VELOCITY;
+	}
+	
+	public void add(Velocity a) {
+		this.x += a.x;
+		this.y += a.y;
+	}
+	public void subtract(Velocity a) {
+		this.x -= a.x;
+		this.y -= a.y;
 	}
 }

@@ -2,7 +2,8 @@ package components;
 
 enum TRAIT{
 	VELOCITY,
-	BOX
+	BOX,
+	MASS
 }
 
 public abstract class Component {

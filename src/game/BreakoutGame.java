@@ -9,9 +9,11 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 import components.Box;
+import components.Mass;
 import components.Velocity;
 import controller.Controller;
 import physics.Physics;
+import etc.Common;
 
 public class BreakoutGame extends StateBasedGame{
 
@@ -26,9 +28,14 @@ public class BreakoutGame extends StateBasedGame{
 	
 	Box aBox;
 	Velocity aVel;
+	Mass aMass;
 	Box bBox;
 	Velocity bVel;
-	
+	Mass bMass;
+	Velocity pVel;
+	Box cBox;
+	Velocity cVel;
+	Mass cMass;
 	
 	public BreakoutGame(String name) {
 		super(name);
@@ -42,7 +49,13 @@ public class BreakoutGame extends StateBasedGame{
 		aBox = new Box(10,10,100,100);
 		bBox = new Box(container.getWidth()/2.0f, container.getHeight()/2.0f, 100, 100);
 		aVel = new Velocity(0,0);
-		bVel = new Velocity(0,0);
+		bVel = new Velocity(-0.0f,0);
+		aMass = new Mass(1.0f);
+		bMass = new Mass(1.0f);
+		pVel = new Velocity(0,0);
+		cBox = new Box(0, container.getHeight()*15/16f, container.getWidth(), container.getHeight()/16f);
+		cVel = new Velocity(0,0);
+		cMass = new Mass(-1);
 	}
 	
 	@Override
@@ -50,25 +63,35 @@ public class BreakoutGame extends StateBasedGame{
 		super.preUpdateState(container, delta);
 		controller.update(container.getInput(), delta);
 		if(controller.buttonHeld(KEY_UP)) {
-			aVel.y = -0.1f;
+			pVel.y = -0.1f;
 		} else if(controller.buttonHeld(KEY_DOWN)) {
-			aVel.y =  0.1f;
+			pVel.y =  0.1f;
 		} else {
-			aVel.y = 0.0f;
+			pVel.y = 0.0f;
 		}
 		if(controller.buttonHeld(KEY_LEFT)) {
-			aVel.x = -0.1f;
+			pVel.x = -0.1f;
 		} else if(controller.buttonHeld(KEY_RIGHT)) {
-			aVel.x = 0.1f;
+			pVel.x = 0.1f;
 		} else {
-			aVel.x = 0.0f;
+			pVel.x = 0.0f;
 		}
 		Physics.doVelocity(aBox, aVel, 0, 0, delta);
+		Physics.doVelocity(aBox, pVel, 0, 0, delta);
+		Physics.doVelocity(bBox, bVel, 0, 0, delta);
+		Physics.doAcceleration(aBox, aVel, 0.0001f*-Common.sign(aVel.x), 0.0001f*-Common.sign(aVel.y), delta);
+		//Physics.doAcceleration(bBox, bVel, 0.0001f*-Common.sign(bVel.x), 0.0001f*-Common.sign(bVel.y), delta);
+		Physics.doAcceleration(bBox, bVel, 0, 0.0001f, delta);
+		aVel.add(pVel);
 		if(aBox.r.intersects(bBox.r)) {
-			int tempDelta = Physics.getBoxCollideDelta(aBox, aVel, bBox, bVel);
-			System.out.println(tempDelta);
-			Physics.doVelocity(aBox, aVel, 0, 0, tempDelta);
+			System.out.print("HERE: ");
+			Physics.doInelasticCollision(aBox, aVel, aMass, bBox, bVel, bMass, delta, 0.9f);
 		}
+		if(cBox.r.intersects(bBox.r)) {
+			Physics.doInelasticCollision(cBox, cVel, cMass, bBox, bVel, bMass, delta, 0.9f);
+		}
+		aVel.subtract(pVel);
+		//System.out.println(aVel.x);
 	}
 	
 	@Override
@@ -82,6 +105,8 @@ public class BreakoutGame extends StateBasedGame{
 		g.fill(aBox.r);
 		g.setColor(Color.blue);
 		g.fill(bBox.r);
+		g.setColor(Color.green);
+		g.fill(cBox.r);
 	}
 	
 	
@@ -89,7 +114,7 @@ public class BreakoutGame extends StateBasedGame{
 		try {
 			AppGameContainer app = new AppGameContainer(new BreakoutGame("Breakout - Riley Jones"));
 			app.setDisplayMode(896, 672, false);
-			app.setVSync(true);
+			//app.setVSync(true);
 			app.start();
 		} catch (SlickException e) {
 			// TODO Auto-generated catch block
