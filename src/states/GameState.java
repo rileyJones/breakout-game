@@ -2,6 +2,7 @@ package states;
 
 import java.util.NoSuchElementException;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
@@ -10,6 +11,7 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 import components.*;
+import components.Player.STATE;
 import etc.Common;
 import etc.Result;
 import game.BreakoutGame;
@@ -67,7 +69,7 @@ public class GameState extends BasicGameState{
 		Result<Component, NoSuchElementException> playerAI_R = player.getTraitByID(TRAIT.AI);
 		if(playerAI_R.is_ok()) {
 			AI playerAI = (AI)playerAI_R.unwrap();
-			playerAI.update(player);
+			playerAI.update(player, delta);
 		}
 		Result<Component, NoSuchElementException> playerVel_R = player.getTraitByID(TRAIT.VELOCITY);
 		Result<Component, NoSuchElementException> playerBox_R = player.getTraitByID(TRAIT.BOX);
@@ -113,14 +115,20 @@ public class GameState extends BasicGameState{
 					}
 				}
 			}
-			if(playerBox_R.is_ok()) {
+			if(playerBox_R.is_ok() && playerAI_R.is_ok()) {
 				Box playerBox = (Box)playerBox_R.unwrap();
-				if(playerBox.r.intersects(ballBox.r)) {
-					Vector2f intersectDir = new Vector2f(ballBox.r.getCenterX()-playerBox.r.getCenterX(), 1.4f*(ballBox.r.getCenterY()-playerBox.r.getMaxY()));
-					intersectDir.normalise();
-					intersectDir.scale(launchPower);
-					ballVel.set(intersectDir.x-ballVel.x/2f, intersectDir.y-ballVel.y/2f);
-					System.out.println(ballVel.y);
+				Player playerAI = (Player)playerAI_R.unwrap();
+				if(playerAI.currentState == Player.STATE.ATTACKING) {
+					if(playerAI.attack != null) {
+						if(playerAI.attack.intersects(ballBox.r)) {
+							Vector2f intersectDir = new Vector2f(ballBox.r.getCenterX()-playerAI.attack.getCenterX(), playerAI.upBias * 1.4f*(ballBox.r.getCenterY()-playerBox.r.getMaxY()));
+							intersectDir.normalise();
+							intersectDir.scale(launchPower);
+							ballVel.set(intersectDir.x-ballVel.x/2f, intersectDir.y-ballVel.y/2f);
+						}
+					}
+				} else {
+					
 				}
 			}
 		}
@@ -129,6 +137,15 @@ public class GameState extends BasicGameState{
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
 		g.drawString(""+Math.max(0,(int)timer), 32, 32);
+		Result<Component, NoSuchElementException> playerAI = player.getTraitByID(TRAIT.AI);
+		if(playerAI.is_ok()) {
+			g.setColor(Color.green);
+			if(((Player)playerAI.unwrap()).attack != null) {
+				g.fill(((Player)playerAI.unwrap()).attack);
+			}
+			g.setColor(Color.white);
+		}
+		
 		Result<Component, NoSuchElementException> playerRect = player.getTraitByID(TRAIT.BOX);
 		if(playerRect.is_ok()) {
 			g.draw(((Box)playerRect.unwrap()).r);
