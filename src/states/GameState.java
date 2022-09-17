@@ -6,12 +6,14 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EmptyTransition;
+import org.newdawn.slick.state.transition.FadeOutTransition;
 
 import components.*;
-import components.Player.STATE;
 import etc.Common;
 import etc.Result;
 import game.BreakoutGame;
@@ -24,10 +26,16 @@ public class GameState extends BasicGameState{
 	Entity[] wallEntities;
 	float timer;
 	private final float launchPower = 0.9f;
+	int lives;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
-		// TODO Auto-generated method stub
+	}
+	@Override
+	public void enter(GameContainer container, StateBasedGame game) throws SlickException {
+		super.enter(container, game);
+		lives = 3;
+		timer = 999;
 		player = new Entity(new Component[] {
 			new Player(((BreakoutGame)game).controller),
 			new Box(container.getWidth()/3f, container.getHeight()-3*8-32, 24, 32),
@@ -60,7 +68,6 @@ public class GameState extends BasicGameState{
 				new Mass(-1f)
 			}),
 		};
-		timer = 999;
 	}
 
 	@Override
@@ -128,7 +135,23 @@ public class GameState extends BasicGameState{
 						}
 					}
 				} else {
-					
+					if(playerBox.r.intersects(ballBox.r) || ballBox.r.getMinY() > container.getHeight()) {
+						timer = Math.max(300,timer);
+						player = new Entity(new Component[] {
+							new Player(((BreakoutGame)game).controller),
+							new Box(container.getWidth()/3f, container.getHeight()-3*8-32, 24, 32),
+							new Velocity(0,0)
+						});
+						ball = new Entity(new Component[] {
+							new Box(container.getWidth()/2f, container.getHeight()/2f, 24, 24),	
+							new Velocity(0,0),
+							new Mass(1f)
+						});
+						lives--;
+						if(lives < 0) {
+							game.enterState(1, new FadeOutTransition(), new EmptyTransition());
+						}
+					}
 				}
 			}
 		}
@@ -163,12 +186,14 @@ public class GameState extends BasicGameState{
 				}
 			}
 		}
+		for(int i = 0; i < lives; i++) {
+			g.fill(new Rectangle( 120+15*i, 30, 10, 15)); 
+		}
 		
 	}
 
 	@Override
 	public int getID() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

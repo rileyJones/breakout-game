@@ -8,6 +8,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 import controller.Controller;
+import states.GameOverState;
 import states.GameState;
 
 public class BreakoutGame extends StateBasedGame{
@@ -31,6 +32,7 @@ public class BreakoutGame extends StateBasedGame{
 				Input.KEY_LEFT, Input.KEY_DOWN, Input.KEY_UP, Input.KEY_RIGHT, Input.KEY_Z, Input.KEY_X, Input.KEY_ENTER
 				});
 		addState(new GameState());
+		addState(new GameOverState());
 	}
 	
 	@Override
