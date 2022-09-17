@@ -5,10 +5,12 @@ import java.util.NoSuchElementException;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 import components.*;
+import etc.Common;
 import etc.Result;
 import game.BreakoutGame;
 import physics.Physics;
@@ -19,6 +21,7 @@ public class GameState extends BasicGameState{
 	Entity ball;
 	Entity[] wallEntities;
 	float timer;
+	private final float launchPower = 0.9f;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
@@ -91,9 +94,10 @@ public class GameState extends BasicGameState{
 			Box ballBox = (Box)ballBox_R.unwrap();
 			Velocity ballVel = (Velocity)ballVel_R.unwrap();
 			Mass ballMass = (Mass)ballMass_R.unwrap();
+			ballVel.normaliseX(1.0f,-1.0f);
+			ballVel.normaliseY(1.5f,-1.5f);
 			Physics.doVelocity(ballBox, ballVel, 0, 0, delta);
-			Physics.doAcceleration(ballBox, ballVel, 0, 0.01f, delta);
-			System.out.println(ballVel.y);
+			Physics.doAcceleration(ballBox, ballVel, -0.0001f*Common.sign(ballVel.x), 0.01f, delta);
 			for(Entity e: wallEntities) {
 				Result<Component, NoSuchElementException> eBox_R = e.getTraitByID(TRAIT.BOX);
 				Result<Component, NoSuchElementException> eVel_R = e.getTraitByID(TRAIT.VELOCITY);
@@ -103,14 +107,20 @@ public class GameState extends BasicGameState{
 					Velocity eVel = (Velocity)eVel_R.unwrap();
 					Mass eMass = (Mass)eMass_R.unwrap();
 					if(ballBox.r.intersects(eBox.r)) {
-						Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+						if(timer > 0 || eBox.r.getMinY() == 0) {
+							Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+						}
 					}
 				}
 			}
 			if(playerBox_R.is_ok()) {
 				Box playerBox = (Box)playerBox_R.unwrap();
 				if(playerBox.r.intersects(ballBox.r)) {
-					
+					Vector2f intersectDir = new Vector2f(ballBox.r.getCenterX()-playerBox.r.getCenterX(), 1.4f*(ballBox.r.getCenterY()-playerBox.r.getMaxY()));
+					intersectDir.normalise();
+					intersectDir.scale(launchPower);
+					ballVel.set(intersectDir.x-ballVel.x/2f, intersectDir.y-ballVel.y/2f);
+					System.out.println(ballVel.y);
 				}
 			}
 		}
