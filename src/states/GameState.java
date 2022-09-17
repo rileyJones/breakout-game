@@ -17,6 +17,7 @@ public class GameState extends BasicGameState{
 
 	Entity player;
 	Entity ball;
+	Entity[] wallEntities;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
@@ -26,6 +27,24 @@ public class GameState extends BasicGameState{
 			new Box(container.getWidth()/2f, container.getHeight()-3*8*3, 16*3, 16*3),
 			new Velocity(0,0)
 			});
+		wallEntities = new Entity[] {
+			new Entity(new Component[] {
+				new Box(0,0,3*8,container.getHeight()),
+				new Velocity(0,0)
+			}),
+			new Entity(new Component[] {
+				new Box(container.getWidth()-3*8,0,3*8,container.getHeight()),
+				new Velocity(0,0)
+			}),
+			new Entity(new Component[] {
+				new Box(0,container.getHeight()-3*8,container.getWidth(),3*8),
+				new Velocity(0,0)
+			}),
+			new Entity(new Component[] {
+				new Box(0,0,container.getWidth(),3*8*5),
+				new Velocity(0,0)
+			}),
+		};
 	}
 
 	@Override
@@ -41,8 +60,18 @@ public class GameState extends BasicGameState{
 			Box playerBox = (Box)playerBox_R.unwrap();
 			Velocity playerVel = (Velocity)playerVel_R.unwrap();
 			Physics.doVelocity(playerBox, playerVel, 0, 0, delta);
+			for(Entity e: wallEntities) {
+				Result<Component, NoSuchElementException> eBox_R = e.getTraitByID(TRAIT.BOX);
+				Result<Component, NoSuchElementException> eVel_R = e.getTraitByID(TRAIT.VELOCITY);
+				if(eBox_R.is_ok() && eVel_R.is_ok()) {
+					Box eBox = (Box)eBox_R.unwrap();
+					Velocity eVel = (Velocity)eVel_R.unwrap();
+					if(playerBox.r.intersects(eBox.r)) {
+						Physics.doSimpleCollision(eBox, eVel, playerBox, playerVel, delta);
+					}
+				}
+			}
 		}
-		
 		
 	}
 	
@@ -56,6 +85,13 @@ public class GameState extends BasicGameState{
 		Result<Component, NoSuchElementException> ballRect = player.getTraitByID(TRAIT.BOX);
 		if(ballRect.is_ok()) {
 			g.draw(((Box)ballRect.unwrap()).r);
+		}
+		for(Entity e: wallEntities) {
+			Result<Component, NoSuchElementException> eBox_R = e.getTraitByID(TRAIT.BOX);
+			if(eBox_R.is_ok()) {
+				Box eBox = (Box)eBox_R.unwrap();
+				g.draw(eBox.r);
+			}
 		}
 	}
 
