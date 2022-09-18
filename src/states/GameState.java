@@ -7,6 +7,7 @@ import javax.xml.bind.ValidationException;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
@@ -85,6 +86,9 @@ public class GameState extends BasicGameState{
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
+		if(container.getInput().isKeyDown(Input.KEY_SLASH)) {
+			game.enterState(3);	
+		}
 		if(level <= LevelList.levelMax) {
 			timer -= delta/87f;
 		}
