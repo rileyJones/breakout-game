@@ -50,6 +50,8 @@ public class BreakoutGame extends StateBasedGame{
 		try {
 			AppGameContainer app = new AppGameContainer(new BreakoutGame("Breakout - Riley Jones"));
 			app.setDisplayMode(896, 672, false);
+			System.out.println(896/16f);
+			System.out.println(672/16f);
 			//app.setVSync(true);
 			app.start();
 		} catch (SlickException e) {

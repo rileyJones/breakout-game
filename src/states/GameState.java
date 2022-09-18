@@ -2,6 +2,8 @@ package states;
 
 import java.util.NoSuchElementException;
 
+import javax.xml.bind.ValidationException;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -11,12 +13,15 @@ import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
 
 import components.*;
 import etc.Common;
 import etc.Result;
 import game.BreakoutGame;
+import game.LevelList;
+import game.LevelModel;
 import physics.Physics;
 
 public class GameState extends BasicGameState{
@@ -27,9 +32,17 @@ public class GameState extends BasicGameState{
 	float timer;
 	private final float launchPower = 0.9f;
 	int lives;
+	int level;
+	LevelModel lm;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
+		level = 1;
+		try {
+			lm = new LevelModel(LevelList.get(level));
+		} catch (ValidationException e) {
+			e.printStackTrace();
+		}
 	}
 	@Override
 	public void enter(GameContainer container, StateBasedGame game) throws SlickException {
@@ -72,7 +85,9 @@ public class GameState extends BasicGameState{
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-		timer -= delta/87f;
+		if(level <= LevelList.levelMax) {
+			timer -= delta/87f;
+		}
 		Result<Component, NoSuchElementException> playerAI_R = player.getTraitByID(TRAIT.AI);
 		if(playerAI_R.is_ok()) {
 			AI playerAI = (AI)playerAI_R.unwrap();
@@ -103,6 +118,7 @@ public class GameState extends BasicGameState{
 			Box ballBox = (Box)ballBox_R.unwrap();
 			Velocity ballVel = (Velocity)ballVel_R.unwrap();
 			Mass ballMass = (Mass)ballMass_R.unwrap();
+			lm.update(ball, delta);
 			ballVel.normaliseX(1.0f,-1.0f);
 			ballVel.normaliseY(1.5f,-1.5f);
 			Physics.doVelocity(ballBox, ballVel, 0, 0, delta);
@@ -135,7 +151,6 @@ public class GameState extends BasicGameState{
 							intersectDir.y -= 1.0f;
 							intersectDir.normalise();
 							intersectDir.scale(0.08f);
-							System.out.println(intersectDir.x);
 							ballVel.set(factorX + ballVel.x/4f, intersectDir.y + ballVel.y/8f);
 							return true;
 						}
@@ -169,13 +184,24 @@ public class GameState extends BasicGameState{
 							new Velocity(0,0),
 							new Mass(1f)
 						});
-						lives--;
+						if(level <= LevelList.levelMax) {
+							lives--;
+						}
 						if(lives < 0) {
 							game.enterState(1, new FadeOutTransition(), new EmptyTransition());
 						}
 					}
 				}
 			}
+		}
+		if(lm.getTileCount() == 0 && level <= LevelList.levelMax) {
+			level++;
+			try {
+				lm = new LevelModel(LevelList.get(level));
+			} catch (ValidationException e) {
+				e.printStackTrace();
+			}
+			game.enterState(0, new FadeOutTransition(), new FadeInTransition());
 		}
 	}
 	
@@ -218,6 +244,17 @@ public class GameState extends BasicGameState{
 		for(int i = 0; i < lives; i++) {
 			g.fill(new Rectangle( 120+15*i, 30, 10, 15)); 
 		}
+		
+		for(int x = 0; x < lm.maxX; x++) {
+			for(int y = 0; y < lm.maxY; y++) {
+				Color tempColor = lm.getColor(x,y);
+				if(tempColor != null) {
+					g.setColor(tempColor);
+					g.fill(new Rectangle(lm.posX + x*lm.tileWidth, lm.posY + y*lm.tileHeight, lm.tileWidth, lm.tileHeight));
+				}
+			}
+		}
+		g.setColor(Color.white);
 		
 	}
 
