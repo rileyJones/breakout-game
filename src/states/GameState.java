@@ -49,6 +49,14 @@ public class GameState extends BasicGameState{
 			e.printStackTrace();
 		}
 	}
+	public void changeLevel(int level) {
+		this.level = level;
+		try {
+			lm = new LevelModel(LevelList.get(level));
+		} catch (ValidationException e) {
+			e.printStackTrace();
+		}
+	}
 	@Override
 	public void enter(GameContainer container, StateBasedGame game) throws SlickException {
 		super.enter(container, game);
@@ -69,12 +77,12 @@ public class GameState extends BasicGameState{
 		});
 		wallEntities = new Entity[] {
 			new Entity(new Component[] {
-				new Box(0,0,3*8,container.getHeight()),
+				new Box(0,0,4*8,container.getHeight()),
 				new Velocity(0,0),
 				new Mass(-1f)
 			}),
 			new Entity(new Component[] {
-				new Box(container.getWidth()-3*8,0,3*8,container.getHeight()),
+				new Box(container.getWidth()-4*8,0,4*8,container.getHeight()),
 				new Velocity(0,0),
 				new Mass(-1f)
 			}),

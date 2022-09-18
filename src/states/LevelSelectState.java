@@ -28,7 +28,7 @@ public class LevelSelectState extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
 		if(enterPressed) {
-			((GameState)game.getState(0)).level = level;
+			((GameState)game.getState(0)).changeLevel(level);
 			game.enterState(0);
 		} else if(slashPressed && slashNotPressed) {
 			game.enterState(0);

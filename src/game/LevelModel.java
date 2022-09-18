@@ -24,7 +24,7 @@ import physics.Physics;
 public class LevelModel {
 	public int tileWidth, tileHeight;
 	public int maxX, maxY;
-	public int posX=3*8, posY=3*8*5;
+	public int posX=4*8, posY=3*8*5;
 	ArrayList<ArrayList<Tile>> tiles;
 	Box oldBallBox;
 	
