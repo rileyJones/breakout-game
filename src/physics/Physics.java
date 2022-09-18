@@ -157,7 +157,7 @@ public class Physics {
 		} else if( m2 == -1 || m1 == 0) {
 			if(u1 > 0) {
 				u1 = Math.min(u2, sqrt(F)*(u2-u1));
-			} else if(u2 < 0) {
+			} else if(u1 < 0) {
 				u1 = Math.max(u2, sqrt(F)*(u2-u1));
 			} else {
 				u1 = u2;

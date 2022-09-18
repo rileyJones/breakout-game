@@ -13,12 +13,14 @@ import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
 
 import components.*;
 import etc.Common;
 import etc.Result;
 import game.BreakoutGame;
+import game.LevelList;
 import game.LevelModel;
 import physics.Physics;
 
@@ -30,13 +32,14 @@ public class GameState extends BasicGameState{
 	float timer;
 	private final float launchPower = 0.9f;
 	int lives;
-	int level = 1;
+	int level;
 	LevelModel lm;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
+		level = 1;
 		try {
-			lm = new LevelModel("levels/level1");
+			lm = new LevelModel(LevelList.get(level));
 		} catch (ValidationException e) {
 			e.printStackTrace();
 		}
@@ -82,7 +85,9 @@ public class GameState extends BasicGameState{
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-		timer -= delta/87f;
+		if(level <= LevelList.levelMax) {
+			timer -= delta/87f;
+		}
 		Result<Component, NoSuchElementException> playerAI_R = player.getTraitByID(TRAIT.AI);
 		if(playerAI_R.is_ok()) {
 			AI playerAI = (AI)playerAI_R.unwrap();
@@ -179,13 +184,24 @@ public class GameState extends BasicGameState{
 							new Velocity(0,0),
 							new Mass(1f)
 						});
-						lives--;
+						if(level <= LevelList.levelMax) {
+							lives--;
+						}
 						if(lives < 0) {
 							game.enterState(1, new FadeOutTransition(), new EmptyTransition());
 						}
 					}
 				}
 			}
+		}
+		if(lm.getTileCount() == 0 && level <= LevelList.levelMax) {
+			level++;
+			try {
+				lm = new LevelModel(LevelList.get(level));
+			} catch (ValidationException e) {
+				e.printStackTrace();
+			}
+			game.enterState(0, new FadeOutTransition(), new FadeInTransition());
 		}
 	}
 	

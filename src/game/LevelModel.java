@@ -152,20 +152,21 @@ public class LevelModel {
 			oldBallBox = (Box) ballBox.clone();
 			return;
 		}
+		int[] oldCollisionsR = tileCollisions(oldBallBox);
 		newCollisions = tileCollisions(ballBox);
 		boolean foundReflectionX = false;
 		boolean foundReflectionY = false;
 		if(newCollisions[0] < oldCollisions[0]) {
 			for(int x = oldCollisions[0] - 1; x >= newCollisions[0]; x--) {
-				for(int y = newCollisions[2]; y <= newCollisions[3]; y++) {
+				for(int y = Math.max(newCollisions[2],oldCollisionsR[2]); y <= Math.min(newCollisions[3],oldCollisionsR[3]); y++) {
 					TILEACTION act = tiles.get(y).get(x).onHit(this, x, y);
 					if(act == TILEACTION.BOUNCE) {
 						if(!foundReflectionX) {
 							foundReflectionX = true;
-							Box tileBox = new Box(posX+x*tileWidth, posY+x*tileHeight, tileWidth, tileHeight);
+							Box tileBox = new Box(posX+x*tileWidth, posY+y*tileHeight, tileWidth, tileHeight);
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
-							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.9f);
+							Physics.doInelasticCollision(tileBox, tileVel, tileMass, ballBox, ballVel, ballMass, delta, 0.98f);
 						} 
 					}
 				}
@@ -176,7 +177,7 @@ public class LevelModel {
 		}
 		if(newCollisions[1] > oldCollisions[1]) {
 			for(int x = oldCollisions[1] + 1; x <= newCollisions[1]; x++) {
-				for(int y = newCollisions[2]; y <= newCollisions[3]; y++) {
+				for(int y = Math.max(newCollisions[2],oldCollisionsR[2]); y <= Math.min(newCollisions[3],oldCollisionsR[3]); y++) {
 					TILEACTION act = tiles.get(y).get(x).onHit(this, x, y);
 					if(act == TILEACTION.BOUNCE) {
 						if(!foundReflectionX) {
@@ -184,7 +185,7 @@ public class LevelModel {
 							Box tileBox = new Box(posX+x*tileWidth, posY+y*tileHeight, tileWidth, tileHeight);
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
-							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.9f);
+							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
 						} 
 					}
 				}
@@ -196,7 +197,7 @@ public class LevelModel {
 		
 		if(newCollisions[2] < oldCollisions[2]) {
 			for(int y = oldCollisions[2] - 1; y >= newCollisions[2]; y--) {
-				for(int x = newCollisions[0]; x <= newCollisions[1]; x++) {
+				for(int x = Math.max(newCollisions[0],oldCollisionsR[0]); x <= Math.min(newCollisions[1],oldCollisionsR[1]); x++) {
 					TILEACTION act = tiles.get(y).get(x).onHit(this, x, y);
 					if(act == TILEACTION.BOUNCE) {
 						if(!foundReflectionY) {
@@ -204,7 +205,7 @@ public class LevelModel {
 							Box tileBox = new Box(posX+x*tileWidth, posY+y*tileHeight, tileWidth, tileHeight);
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
-							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.9f);
+							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
 						} 
 					}
 				}
@@ -215,7 +216,7 @@ public class LevelModel {
 		}
 		if(newCollisions[3] > oldCollisions[3]) {
 			for(int y = oldCollisions[3] + 1; y <= newCollisions[3]; y++) {
-				for(int x = newCollisions[0]; x <= newCollisions[1]; x++) {
+				for(int x = Math.max(newCollisions[0],oldCollisionsR[0]); x <= Math.min(newCollisions[1],oldCollisionsR[1]); x++) {
 					TILEACTION act = tiles.get(y).get(x).onHit(this, x, y);
 					if(act == TILEACTION.BOUNCE) {
 						if(!foundReflectionY) {
@@ -223,7 +224,7 @@ public class LevelModel {
 							Box tileBox = new Box(posX+x*tileWidth, posY+y*tileHeight, tileWidth, tileHeight);
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
-							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.9f);
+							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
 						} 
 					}
 				}
@@ -232,7 +233,7 @@ public class LevelModel {
 				}
 			}
 		}
-		if(!foundReflectionX || !foundReflectionY) {
+		if(!foundReflectionX && !foundReflectionY) {
 			int x,y;
 			if(newCollisions[0] < oldCollisions[0]) {
 				x = newCollisions[0];
@@ -299,6 +300,16 @@ public class LevelModel {
 	}
 	public Color getColor(int x, int y) {
 		return tiles.get(y).get(x).getColor(this, x, y);
+	}
+	
+	public int getTileCount() {
+		int sum = 0;
+		for(ArrayList<Tile> list: tiles) {
+			for(Tile t: list) {
+				sum += t.getScore();
+			}
+		}
+		return sum;
 	}
 	
 }
@@ -395,6 +406,24 @@ class Tile {
 				return lm.tiles.get(y-1).get(x).getColor(lm, x, y-1);
 			default:
 				return null;
+		}
+	}
+	int getScore() {
+		switch(tileType) {
+			case BREAKABLE:
+				return numHits;
+			case EMPTY:
+				return 0;
+			case LEFT:
+				return 0;
+			case PASSTHROUGH:
+				return numHits;
+			case SOLID:
+				return 0;
+			case UP:
+				return 0;
+			default:
+				return 0;
 		}
 	}
 }
