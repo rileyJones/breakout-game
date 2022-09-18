@@ -12,4 +12,9 @@ public class Mass extends Component {
 		return TRAIT.MASS;
 	}
 
+	@Override
+	public Component clone() {
+		return new Mass(m);
+	}
+
 }

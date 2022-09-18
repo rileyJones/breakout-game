@@ -18,4 +18,11 @@ public class Entity {
 		}
 		return new Result<Component,NoSuchElementException>(new NoSuchElementException());
 	}
+	public Entity clone() {
+		Component[] cloneTraits = new Component[traits.length];
+		for(int i = 0; i < traits.length; i++) {
+			cloneTraits[i] = traits[i].clone();
+		}
+		return new Entity(cloneTraits);
+	}
 }

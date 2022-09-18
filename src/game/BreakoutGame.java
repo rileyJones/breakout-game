@@ -2,11 +2,14 @@ package game;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 import controller.Controller;
+import states.GameOverState;
+import states.GameState;
 
 public class BreakoutGame extends StateBasedGame{
 
@@ -17,7 +20,7 @@ public class BreakoutGame extends StateBasedGame{
 	public static final int KEY_SHOOT = 4;
 	public static final int KEY_ACT   = 5;
 	public static final int KEY_PAUSE = 6;
-	Controller controller;
+	public Controller controller;
 	
 	public BreakoutGame(String name) {
 		super(name);
@@ -28,12 +31,19 @@ public class BreakoutGame extends StateBasedGame{
 		controller = new Controller(new int[] {
 				Input.KEY_LEFT, Input.KEY_DOWN, Input.KEY_UP, Input.KEY_RIGHT, Input.KEY_Z, Input.KEY_X, Input.KEY_ENTER
 				});
+		addState(new GameState());
+		addState(new GameOverState());
 	}
 	
 	@Override
 	protected void preUpdateState(GameContainer container, int delta) throws SlickException {
 		super.preUpdateState(container, delta);
 		controller.update(container.getInput(), delta);
+	}
+	@Override
+	protected void postRenderState(GameContainer container, Graphics g) throws SlickException {
+		super.postRenderState(container, g);
+		System.gc();
 	}
 	
 	public static void main(String[] args) {
