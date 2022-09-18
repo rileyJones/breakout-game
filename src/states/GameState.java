@@ -165,7 +165,11 @@ public class GameState extends BasicGameState{
 					Mass eMass = (Mass)eMass_R.unwrap();
 					if(ballBox.r.intersects(eBox.r)) {
 						if(timer > 0 || eBox.r.getMinY() == 0) {
-							Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							if(eBox.r.getCenterY() > container.getHeight()*2/3f) {
+								Physics.assertDirectionInelasticCollision(Physics.DIRECTION.Y_MINUS, eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							} else {
+								Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							}
 						}
 					}
 				}
@@ -306,7 +310,6 @@ public class GameState extends BasicGameState{
 			g.drawString(""+level, container.getWidth()/9f, container.getHeight()/8f);
 			g.scale(1/3f,1/3f);
 			g.setFont(oldFont);
-			
 		}
 	}
 

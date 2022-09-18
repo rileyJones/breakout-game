@@ -166,7 +166,8 @@ public class LevelModel {
 							Box tileBox = new Box(posX+x*tileWidth, posY+y*tileHeight, tileWidth, tileHeight);
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
-							Physics.doInelasticCollision(tileBox, tileVel, tileMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							//Physics.doInelasticCollision(tileBox, tileVel, tileMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							Physics.assertDirectionInelasticCollision(Physics.DIRECTION.X_PLUS, tileBox, tileVel, tileMass, ballBox, ballVel, ballMass, delta, 0.98f);
 						} 
 					}
 				}
@@ -185,7 +186,8 @@ public class LevelModel {
 							Box tileBox = new Box(posX+x*tileWidth, posY+y*tileHeight, tileWidth, tileHeight);
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
-							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
+							//Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
+							Physics.assertDirectionInelasticCollision(Physics.DIRECTION.X_MINUS, tileBox, tileVel, tileMass, ballBox, ballVel, ballMass, delta, 0.98f);
 						} 
 					}
 				}
@@ -205,7 +207,8 @@ public class LevelModel {
 							Box tileBox = new Box(posX+x*tileWidth, posY+y*tileHeight, tileWidth, tileHeight);
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
-							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
+							//Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
+							Physics.assertDirectionInelasticCollision(Physics.DIRECTION.Y_PLUS, tileBox, tileVel, tileMass, ballBox, ballVel, ballMass, delta, 0.98f);
 						} 
 					}
 				}
@@ -225,6 +228,7 @@ public class LevelModel {
 							Velocity tileVel = new Velocity(0,0);
 							Mass tileMass = new Mass(-1);
 							Physics.doInelasticCollision(ballBox, ballVel, ballMass, tileBox, tileVel, tileMass, delta, 0.98f);
+							//Physics.assertDirectionInelasticCollision(Physics.DIRECTION.Y_MINUS, tileBox, tileVel, tileMass, ballBox, ballVel, ballMass, delta, 0.98f);
 						} 
 					}
 				}
