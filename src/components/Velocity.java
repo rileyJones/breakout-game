@@ -13,6 +13,9 @@ public class Velocity extends Component {
 	public TRAIT ID() {
 		return TRAIT.VELOCITY;
 	}
+	public Component clone() {
+		return new Velocity(x, y);
+	}
 	
 	public void add(Velocity a) {
 		this.x += a.x;

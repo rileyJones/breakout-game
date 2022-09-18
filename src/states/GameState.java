@@ -122,6 +122,28 @@ public class GameState extends BasicGameState{
 					}
 				}
 			}
+			if(playerAI_R.is_ok()) {
+				Player playerAI = (Player)playerAI_R.unwrap();
+				playerAI.shotList.removeIf(shot -> {
+					Result<Component, NoSuchElementException> shotBox_R = shot.getTraitByID(TRAIT.BOX);
+					if(shotBox_R.is_ok()) {
+						Box shotBox = (Box)shotBox_R.unwrap();
+						if(shotBox.r.intersects(ballBox.r)) {
+							Vector2f intersectDir = new Vector2f(ballBox.r.getCenterX()-shotBox.r.getCenterX(),100f*(ballBox.r.getCenterY()-shotBox.r.getMaxY()));
+							float factorX = (float) (intersectDir.x *0.03);
+							intersectDir.normalise();
+							intersectDir.y -= 1.0f;
+							intersectDir.normalise();
+							intersectDir.scale(0.08f);
+							System.out.println(intersectDir.x);
+							ballVel.set(factorX + ballVel.x/4f, intersectDir.y + ballVel.y/8f);
+							return true;
+						}
+					}
+					return false;
+				});
+			}
+			
 			if(playerBox_R.is_ok() && playerAI_R.is_ok()) {
 				Box playerBox = (Box)playerBox_R.unwrap();
 				Player playerAI = (Player)playerAI_R.unwrap();
@@ -166,6 +188,13 @@ public class GameState extends BasicGameState{
 			if(((Player)playerAI.unwrap()).attack != null) {
 				g.fill(((Player)playerAI.unwrap()).attack);
 			}
+			((Player)playerAI.unwrap()).shotList.forEach(shot -> {
+				Result<Component, NoSuchElementException> shotBox_R = shot.getTraitByID(TRAIT.BOX);
+				if(shotBox_R.is_ok()) {
+					Box shotBox = (Box)shotBox_R.unwrap();
+					g.fill(shotBox.r);
+				}
+			});
 			g.setColor(Color.white);
 		}
 		

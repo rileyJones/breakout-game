@@ -1,5 +1,6 @@
 package components;
 
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 import org.newdawn.slick.geom.Circle;
@@ -9,6 +10,7 @@ import org.newdawn.slick.geom.Shape;
 import controller.Controller;
 import etc.Result;
 import game.BreakoutGame;
+import physics.Physics;
 
 public class Player extends AI{
 	private Controller c;
@@ -17,16 +19,22 @@ public class Player extends AI{
 	public STATE currentState; 
 	private int movementDirection;
 	private final float attackTime = 0.5f;
+	private final float shootTime = 0.3f;
 	private int attackLayer;
 	private int attackDirection;
 	public Shape attack;
 	public float upBias;
-	
 	float timer;
+	int reshotTimer;
+	int timesReshot;
+	
+	Entity shotPrototype;
+	public ArrayList<Entity> shotList; 
 	
 	public enum STATE {
 		WALKING,
-		ATTACKING
+		ATTACKING,
+		SHOOTING
 	};
 	public Player(Controller c) {
 		this.c = c;
@@ -36,11 +44,18 @@ public class Player extends AI{
 		attackDirection = 1;
 		attack = null;
 		upBias = 1.0f;
+		shotList = new ArrayList<Entity>();
+		shotPrototype = new Entity( new Component[] {
+			new Box(0,0,15,20),
+			new Velocity(0, -1.0f)
+		});
 	}
 
 	@Override
 	public void update(Entity self, int delta) {
 		keyMovement(self);
+		updateShots(self, delta);
+		timer -= delta/1000f;
 		switch(currentState) {
 			case WALKING:
 				walking(self, delta);
@@ -48,8 +63,28 @@ public class Player extends AI{
 			case ATTACKING:
 				attacking(self, delta);
 				break;
+			case SHOOTING:
+				shooting(self, delta);
+				break;
 		}
 	}
+	public void updateShots(Entity self, int delta) {
+		shotList.removeIf(shot -> {
+			Result<Component, NoSuchElementException> shotBox_R = shot.getTraitByID(TRAIT.BOX);
+			Result<Component, NoSuchElementException> shotVel_R = shot.getTraitByID(TRAIT.VELOCITY);
+			if(shotBox_R.is_ok() && shotVel_R.is_ok()) {
+				Box shotBox = (Box)shotBox_R.unwrap();
+				Velocity shotVel = (Velocity)shotVel_R.unwrap();
+				Physics.doVelocity(shotBox, shotVel, 0, 0, delta);
+				if(shotBox.r.getMaxX() < 0) {
+					return true;
+				}
+				return false;
+			}
+			return true;
+		});
+	}
+	
 	public void keyMovement(Entity self) {
 		if(c.buttonPressed(BreakoutGame.KEY_LEFT)) {
 			movementDirection -= 1;
@@ -86,11 +121,19 @@ public class Player extends AI{
 				attack = new Rectangle(box.r.getMinX() - 10, box.r.getMinY()-4, box.r.getWidth()+20, box.r.getHeight()+4);
 				upBias = 0.9f;
 			}
+		} if(c.buttonPressed(BreakoutGame.KEY_SHOOT)) {
+			Entity newShot = shotPrototype.clone();
+			Result<Component, NoSuchElementException> newShotBox_R = newShot.getTraitByID(TRAIT.BOX);
+			if(newShotBox_R.is_ok()) {
+				Box newShotBox = (Box)newShotBox_R.unwrap();
+				newShotBox.r.setCenterX(box.r.getCenterX());
+				newShotBox.r.setCenterY(box.r.getY()-newShotBox.r.getHeight());
+				shotList.add(newShot);
+			}
 		}
 	}
 	
 	public void attacking(Entity self, int delta) {
-		timer -= delta/1000f;
 		Result<Component, NoSuchElementException> velR = self.getTraitByID(TRAIT.VELOCITY);
 		if(velR.is_err()) return;
 		Velocity vel = (Velocity)velR.unwrap();
@@ -134,5 +177,46 @@ public class Player extends AI{
 				attackLayer = 1;
 			}
 		}
+		if(c.buttonPressed(BreakoutGame.KEY_SHOOT) && attackLayer == 0) {
+			currentState = STATE.SHOOTING;
+			attack = null;
+			timer = shootTime;
+			reshotTimer = 33;
+			timesReshot = 25;
+		}
+	}
+	public void shooting(Entity self, int delta) {
+		Result<Component, NoSuchElementException> velR = self.getTraitByID(TRAIT.VELOCITY);
+		if(velR.is_err()) return;
+		Velocity vel = (Velocity)velR.unwrap();
+		Result<Component, NoSuchElementException> boxR = self.getTraitByID(TRAIT.BOX);
+		if(boxR.is_err()) return;
+		Box box = (Box)boxR.unwrap();
+		vel.x = 0;
+		reshotTimer -= delta;
+		if(timer < 0) {
+			currentState = STATE.WALKING;
+		}
+		if(reshotTimer < 0) {
+			reshotTimer = 33;
+			Entity newShot = shotPrototype.clone();
+			Result<Component, NoSuchElementException> newShotBox_R = newShot.getTraitByID(TRAIT.BOX);
+			if(newShotBox_R.is_ok()) {
+				Box newShotBox = (Box)newShotBox_R.unwrap();
+				newShotBox.r.setCenterX((float) (box.r.getCenterX() + box.r.getWidth()*2/3f*Math.sin(2*Math.PI*Math.random())));
+				newShotBox.r.setCenterY(box.r.getY()-newShotBox.r.getHeight());
+				shotList.add(newShot);
+			}
+		}
+		if(c.buttonPressed(BreakoutGame.KEY_SHOOT)) {
+			timer = Math.max(timesReshot/100f,timer);
+			timesReshot--;
+		}
+	}
+
+	@Override
+	public Component clone() {
+		System.out.println("HAHA nice try");
+		return null;
 	}
 }

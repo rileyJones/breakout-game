@@ -14,5 +14,9 @@ public class Box extends Component{
 	public TRAIT ID() {
 		return TRAIT.BOX;
 	}
+	@Override
+	public Component clone() {
+		return new Box(new Rectangle(r.getX(), r.getY(), r.getWidth(), r.getHeight()));
+	}
 	
 }
