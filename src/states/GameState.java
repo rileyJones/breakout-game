@@ -1,7 +1,6 @@
 package states;
 
 import java.util.NoSuchElementException;
-
 import javax.xml.bind.ValidationException;
 
 import org.newdawn.slick.Color;
@@ -9,6 +8,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
@@ -39,10 +39,15 @@ public class GameState extends BasicGameState{
 	boolean pause;
 	float deathAnimTimer;
 	float invulnTimer;
+	TrueTypeFont bigFont;
+	
+	
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
 		level = 1;
+		java.awt.Font awtFont = new java.awt.Font("Serif", java.awt.Font.PLAIN, 60);
+		bigFont =  new TrueTypeFont(awtFont, false);
 		try {
 			lm = new LevelModel(LevelList.get(level));
 		} catch (ValidationException e) {
@@ -201,8 +206,6 @@ public class GameState extends BasicGameState{
 				} else {
 					if((playerBox.r.intersects(ballBox.r) || ballBox.r.getMinY() > container.getHeight()) && invulnTimer < 0) {
 						timer = Math.max(300,timer);
-						invulnTimer = 20;
-						deathAnimTimer = 10;
 						if(ballBox.r.getMinY() > container.getHeight()) {
 							ball = new Entity(new Component[] {
 									new Box(container.getWidth()/2f, container.getHeight()-3*8-32-8, 24, 24),	
@@ -213,8 +216,10 @@ public class GameState extends BasicGameState{
 						} else {
 							ballVel.y -= 1;
 						}
-						if(level <= LevelList.levelMax) {
+						if(level <= LevelList.levelMax && invulnTimer < 0) {
 							lives--;
+							invulnTimer = 20;
+							deathAnimTimer = 10;
 						}
 						if(lives < 0) {
 							game.enterState(1, new FadeOutTransition(), new EmptyTransition());
@@ -294,7 +299,15 @@ public class GameState extends BasicGameState{
 			}
 		}
 		g.setColor(Color.white);
-		
+		if(pause && timer == 999) {
+			org.newdawn.slick.Font oldFont = g.getFont();
+			g.setFont(bigFont);
+			g.scale(3,3);
+			g.drawString(""+level, container.getWidth()/9f, container.getHeight()/8f);
+			g.scale(1/3f,1/3f);
+			g.setFont(oldFont);
+			
+		}
 	}
 
 	@Override
