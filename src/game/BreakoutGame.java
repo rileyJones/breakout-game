@@ -10,6 +10,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import controller.Controller;
 import states.GameOverState;
 import states.GameState;
+import states.LevelSelectState;
 import states.TitleState;
 
 public class BreakoutGame extends StateBasedGame{
@@ -35,6 +36,7 @@ public class BreakoutGame extends StateBasedGame{
 		addState(new TitleState());
 		addState(new GameState());
 		addState(new GameOverState());
+		addState(new LevelSelectState());
 	}
 	
 	@Override
