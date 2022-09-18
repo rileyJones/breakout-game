@@ -9,6 +9,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.BasicGameState;
@@ -35,6 +36,9 @@ public class GameState extends BasicGameState{
 	int lives;
 	int level;
 	LevelModel lm;
+	boolean pause;
+	float deathAnimTimer;
+	float invulnTimer;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
@@ -50,13 +54,16 @@ public class GameState extends BasicGameState{
 		super.enter(container, game);
 		lives = 3;
 		timer = 999;
+		pause = true;
+		invulnTimer = 0;
+		deathAnimTimer = 0;
 		player = new Entity(new Component[] {
 			new Player(((BreakoutGame)game).controller),
 			new Box(container.getWidth()/3f, container.getHeight()-3*8-32, 24, 32),
 			new Velocity(0,0)
 		});
 		ball = new Entity(new Component[] {
-			new Box(container.getWidth()/2f, container.getHeight()/2f, 24, 24),	
+			new Box(container.getWidth()/2f, container.getHeight()-3*8-32-8, 24, 24),	
 			new Velocity(0,0),
 			new Mass(1f)
 		});
@@ -89,9 +96,8 @@ public class GameState extends BasicGameState{
 		if(container.getInput().isKeyDown(Input.KEY_SLASH)) {
 			game.enterState(3);	
 		}
-		if(level <= LevelList.levelMax) {
-			timer -= delta/87f;
-		}
+		deathAnimTimer -= delta/87f;
+		invulnTimer -= delta/87f;
 		Result<Component, NoSuchElementException> playerAI_R = player.getTraitByID(TRAIT.AI);
 		if(playerAI_R.is_ok()) {
 			AI playerAI = (AI)playerAI_R.unwrap();
@@ -114,6 +120,15 @@ public class GameState extends BasicGameState{
 					}
 				}
 			}
+		}
+		if(pause) {
+			if(((BreakoutGame)game).controller.buttonPressed(BreakoutGame.KEY_ACT)) {
+				pause = false;
+			}
+			return;
+		}
+		if(level <= LevelList.levelMax) {
+			timer -= delta/87f;
 		}
 		Result<Component, NoSuchElementException> ballBox_R = ball.getTraitByID(TRAIT.BOX);
 		Result<Component, NoSuchElementException> ballVel_R = ball.getTraitByID(TRAIT.VELOCITY);
@@ -176,18 +191,20 @@ public class GameState extends BasicGameState{
 						}
 					}
 				} else {
-					if(playerBox.r.intersects(ballBox.r) || ballBox.r.getMinY() > container.getHeight()) {
+					if((playerBox.r.intersects(ballBox.r) || ballBox.r.getMinY() > container.getHeight()) && invulnTimer < 0) {
 						timer = Math.max(300,timer);
-						player = new Entity(new Component[] {
-							new Player(((BreakoutGame)game).controller),
-							new Box(container.getWidth()/3f, container.getHeight()-3*8-32, 24, 32),
-							new Velocity(0,0)
-						});
-						ball = new Entity(new Component[] {
-							new Box(container.getWidth()/2f, container.getHeight()/2f, 24, 24),	
-							new Velocity(0,0),
-							new Mass(1f)
-						});
+						invulnTimer = 20;
+						deathAnimTimer = 10;
+						if(ballBox.r.getMinY() > container.getHeight()) {
+							ball = new Entity(new Component[] {
+									new Box(container.getWidth()/2f, container.getHeight()-3*8-32-8, 24, 24),	
+									new Velocity(0,0),
+									new Mass(1f)
+								});
+								pause = true;
+						} else {
+							ballVel.y -= 1;
+						}
 						if(level <= LevelList.levelMax) {
 							lives--;
 						}
@@ -230,7 +247,17 @@ public class GameState extends BasicGameState{
 		
 		Result<Component, NoSuchElementException> playerRect = player.getTraitByID(TRAIT.BOX);
 		if(playerRect.is_ok()) {
-			g.draw(((Box)playerRect.unwrap()).r);
+			Rectangle playerBox = ((Box)playerRect.unwrap()).r;
+			if(deathAnimTimer > 0) {
+				g.setColor(Color.red);
+				g.fill(new Circle(playerBox.getCenterX(), playerBox.getCenterY(), 200*(5-Math.abs(deathAnimTimer-5))+30));
+			} else {
+				if(invulnTimer > 0) {
+					g.setColor(Color.cyan);
+				}
+				g.draw(playerBox);
+			}
+			g.setColor(Color.white);
 		}
 		Result<Component, NoSuchElementException> ballRect = ball.getTraitByID(TRAIT.BOX);
 		if(ballRect.is_ok()) {
