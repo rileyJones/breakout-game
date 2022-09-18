@@ -2,6 +2,8 @@ package states;
 
 import java.util.NoSuchElementException;
 
+import javax.xml.bind.ValidationException;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -17,6 +19,7 @@ import components.*;
 import etc.Common;
 import etc.Result;
 import game.BreakoutGame;
+import game.LevelModel;
 import physics.Physics;
 
 public class GameState extends BasicGameState{
@@ -27,9 +30,16 @@ public class GameState extends BasicGameState{
 	float timer;
 	private final float launchPower = 0.9f;
 	int lives;
+	int level = 1;
+	LevelModel lm;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
+		try {
+			lm = new LevelModel("levels/level1");
+		} catch (ValidationException e) {
+			e.printStackTrace();
+		}
 	}
 	@Override
 	public void enter(GameContainer container, StateBasedGame game) throws SlickException {
@@ -103,6 +113,7 @@ public class GameState extends BasicGameState{
 			Box ballBox = (Box)ballBox_R.unwrap();
 			Velocity ballVel = (Velocity)ballVel_R.unwrap();
 			Mass ballMass = (Mass)ballMass_R.unwrap();
+			lm.update(ball, delta);
 			ballVel.normaliseX(1.0f,-1.0f);
 			ballVel.normaliseY(1.5f,-1.5f);
 			Physics.doVelocity(ballBox, ballVel, 0, 0, delta);
@@ -135,7 +146,6 @@ public class GameState extends BasicGameState{
 							intersectDir.y -= 1.0f;
 							intersectDir.normalise();
 							intersectDir.scale(0.08f);
-							System.out.println(intersectDir.x);
 							ballVel.set(factorX + ballVel.x/4f, intersectDir.y + ballVel.y/8f);
 							return true;
 						}
@@ -218,6 +228,17 @@ public class GameState extends BasicGameState{
 		for(int i = 0; i < lives; i++) {
 			g.fill(new Rectangle( 120+15*i, 30, 10, 15)); 
 		}
+		
+		for(int x = 0; x < lm.maxX; x++) {
+			for(int y = 0; y < lm.maxY; y++) {
+				Color tempColor = lm.getColor(x,y);
+				if(tempColor != null) {
+					g.setColor(tempColor);
+					g.fill(new Rectangle(lm.posX + x*lm.tileWidth, lm.posY + y*lm.tileHeight, lm.tileWidth, lm.tileHeight));
+				}
+			}
+		}
+		g.setColor(Color.white);
 		
 	}
 
