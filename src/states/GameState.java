@@ -154,7 +154,7 @@ public class GameState extends BasicGameState{
 			ballVel.normaliseX(1.0f,-1.0f);
 			ballVel.normaliseY(1.5f,-1.5f);
 			Physics.doVelocity(ballBox, ballVel, 0, 0, delta);
-			Physics.doAcceleration(ballBox, ballVel, -0.0001f*Common.sign(ballVel.x), 0.01f, delta);
+			Physics.doAcceleration(ballBox, ballVel, -0.0001f*Common.sign(ballVel.x)/4, 0.01f/4, delta);
 			for(Entity e: wallEntities) {
 				Result<Component, NoSuchElementException> eBox_R = e.getTraitByID(TRAIT.BOX);
 				Result<Component, NoSuchElementException> eVel_R = e.getTraitByID(TRAIT.VELOCITY);
@@ -166,9 +166,9 @@ public class GameState extends BasicGameState{
 					if(ballBox.r.intersects(eBox.r)) {
 						if(timer > 0 || eBox.r.getMinY() == 0) {
 							if(eBox.r.getCenterY() > container.getHeight()*2/3f) {
-								Physics.assertDirectionInelasticCollision(Physics.DIRECTION.Y_MINUS, eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+								Physics.assertDirectionInelasticCollision(Physics.DIRECTION.Y_MINUS, eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.90f);
 							} else {
-								Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+								Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.90f);
 							}
 						}
 					}

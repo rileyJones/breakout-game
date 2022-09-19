@@ -28,8 +28,8 @@ public class Physics {
 		}
 	}
 	
-	public static int getBoxCollideDelta(Box aBox, Velocity aVel, Box bBox, Velocity bVel) {
-		return (int) Math.floor(Math.max(Math.min(
+	public static float getBoxCollideDelta(Box aBox, Velocity aVel, Box bBox, Velocity bVel) {
+		return (Math.max(Math.min(
 				(aBox.r.getMaxX()-bBox.r.getMinX())/(bVel.x-aVel.x)
 				,
 				(aBox.r.getMinX()-bBox.r.getMaxX())/(bVel.x-aVel.x)
@@ -37,7 +37,7 @@ public class Physics {
 				(aBox.r.getMaxY()-bBox.r.getMinY())/(bVel.y-aVel.y)
 				,
 				(aBox.r.getMinY()-bBox.r.getMaxY())/(bVel.y-aVel.y)		
-				)))-1;
+				)))-0.001f;
 	}
 	public static DIRECTION getBoxCollideDirection(Box aBox, Velocity aVel, Box bBox, Velocity bVel) {
 		float xp = (aBox.r.getMaxX()-bBox.r.getMinX())/(bVel.x-aVel.x);
@@ -59,26 +59,26 @@ public class Physics {
 		}
 	}
 	
-	public static int assertDirectionDelta(DIRECTION dir, Box aBox, Velocity aVel, Box bBox, Velocity bVel) {
+	public static float assertDirectionDelta(DIRECTION dir, Box aBox, Velocity aVel, Box bBox, Velocity bVel) {
 		float xp = (aBox.r.getMaxX()-bBox.r.getMinX())/(bVel.x-aVel.x);
 		float xm = (aBox.r.getMinX()-bBox.r.getMaxX())/(bVel.x-aVel.x);
 		float yp = (aBox.r.getMaxY()-bBox.r.getMinY())/(bVel.y-aVel.y);
 		float ym = (aBox.r.getMinY()-bBox.r.getMaxY())/(bVel.y-aVel.y);
 		switch(dir) {
 			case X_MINUS:
-				return (int) (Math.floor(xm)-1);
+				return xm-0.001f;
 			case X_PLUS:
-				return (int) (Math.floor(xp)-1);
+				return xp-0.001f;
 			case Y_MINUS:
-				return (int) (Math.floor(ym)-1);
+				return ym-0.001f;
 			case Y_PLUS:
-				return (int) (Math.floor(yp)-1);
+				return yp-0.001f;
 			default:
 				return 0;
 		}
 	}
 	
-	public static void doAcceleration(Box aBox, Velocity aVel, float x, float y, int delta) {
+	public static void doAcceleration(Box aBox, Velocity aVel, float x, float y, float delta) {
 		aVel.x += x*delta;
 		aVel.y += y*delta;
 		aBox.r.setCenterX(
@@ -88,7 +88,7 @@ public class Physics {
 				aBox.r.getCenterY() + y*delta*delta/2.0f
 			);
 	}
-	public static void doVelocity(Box aBox, Velocity aVel, float x, float y, int delta) {
+	public static void doVelocity(Box aBox, Velocity aVel, float x, float y, float delta) {
 		aVel.x += x;
 		aVel.y += y;
 		aBox.r.setCenterX(
@@ -99,21 +99,21 @@ public class Physics {
 			);
 	}
 	
-	public static int doBoxClip(Box aBox, Velocity aVel, Box bBox, Velocity bVel, int delta) {
-		int tempDelta = Physics.getBoxCollideDelta(aBox, aVel, bBox, bVel);
+	public static float doBoxClip(Box aBox, Velocity aVel, Box bBox, Velocity bVel, int delta) {
+		float tempDelta = Physics.getBoxCollideDelta(aBox, aVel, bBox, bVel);
 		Physics.doVelocity(aBox, aVel, 0, 0, tempDelta);
 		Physics.doVelocity(bBox, bVel, 0, 0, tempDelta);
 		return -tempDelta;
 	}
-	public static int assertDirectionClip(DIRECTION dir, Box aBox, Velocity aVel, Box bBox, Velocity bVel, int delta) {
-		int tempDelta = Physics.assertDirectionDelta(dir, aBox, aVel, bBox, bVel);
+	public static float assertDirectionClip(DIRECTION dir, Box aBox, Velocity aVel, Box bBox, Velocity bVel, int delta) {
+		float tempDelta = Physics.assertDirectionDelta(dir, aBox, aVel, bBox, bVel);
 		Physics.doVelocity(aBox, aVel, 0, 0, tempDelta);
 		Physics.doVelocity(bBox, bVel, 0, 0, tempDelta);
 		return -tempDelta;
 	}
 	
 	public static void doSimpleCollision(Box aBox, Velocity aVel, Box bBox, Velocity bVel, int delta) {
-		int tempDelta = doBoxClip(aBox, aVel, bBox, bVel, delta);
+		float tempDelta = doBoxClip(aBox, aVel, bBox, bVel, delta);
 		DIRECTION boxCollideDirection = getBoxCollideDirection(aBox, aVel, bBox, bVel);
 		switch(boxCollideDirection) {
 			case X_MINUS:
@@ -140,7 +140,7 @@ public class Physics {
 		Physics.doVelocity(bBox, bVel, 0, 0, tempDelta);
 	}
 	public static void doInelasticCollision(Box aBox, Velocity aVel, Mass aMass, Box bBox, Velocity bVel, Mass bMass, int delta, float factor) {
-		int tempDelta = doBoxClip(aBox, aVel, bBox, bVel, delta);
+		float tempDelta = doBoxClip(aBox, aVel, bBox, bVel, delta);
 		DIRECTION boxCollideDirection = getBoxCollideDirection(aBox, aVel, bBox, bVel);
 		switch(boxCollideDirection) {
 			case X_MINUS:
@@ -167,7 +167,7 @@ public class Physics {
 		Physics.doVelocity(bBox, bVel, 0, 0, tempDelta);
 	}
 	public static void assertDirectionInelasticCollision(DIRECTION dir, Box aBox, Velocity aVel, Mass aMass, Box bBox, Velocity bVel, Mass bMass, int delta, float factor) {
-		int tempDelta = assertDirectionClip(dir, aBox, aVel, bBox, bVel, delta);
+		float tempDelta = assertDirectionClip(dir, aBox, aVel, bBox, bVel, delta);
 		//DIRECTION boxCollideDirection = getBoxCollideDirection(aBox, aVel, bBox, bVel);
 		switch(dir) {
 			case X_MINUS:
