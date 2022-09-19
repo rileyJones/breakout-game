@@ -14,8 +14,8 @@ import physics.Physics;
 
 public class Player extends AI{
 	private Controller c;
-	private final float walkSpeed = 0.05f;
-	private final float attackSpeed = 0.075f;
+	private final float walkSpeed = 0.05f*5;
+	private final float attackSpeed = 0.075f*5;
 	public STATE currentState; 
 	private int movementDirection;
 	private final float attackTime = 0.5f;
@@ -107,7 +107,7 @@ public class Player extends AI{
 		Result<Component, NoSuchElementException> boxR = self.getTraitByID(TRAIT.BOX);
 		if(boxR.is_err()) return;
 		Box box = (Box)boxR.unwrap();
-		vel.x = movementDirection * walkSpeed * delta;
+		vel.x = movementDirection * walkSpeed;
 		if(c.buttonPressed(BreakoutGame.KEY_ACT)) {
 			currentState = STATE.ATTACKING;
 			timer = attackTime;
@@ -140,7 +140,7 @@ public class Player extends AI{
 		Result<Component, NoSuchElementException> boxR = self.getTraitByID(TRAIT.BOX);
 		if(boxR.is_err()) return;
 		Box box = (Box)boxR.unwrap();
-		vel.x = attackDirection * attackSpeed * delta;
+		vel.x = attackDirection * attackSpeed;
 		if(timer < 0) {
 			currentState = STATE.WALKING;
 			attack = null;

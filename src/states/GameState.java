@@ -1,7 +1,6 @@
 package states;
 
 import java.util.NoSuchElementException;
-
 import javax.xml.bind.ValidationException;
 
 import org.newdawn.slick.Color;
@@ -9,6 +8,8 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.TrueTypeFont;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.BasicGameState;
@@ -35,10 +36,26 @@ public class GameState extends BasicGameState{
 	int lives;
 	int level;
 	LevelModel lm;
+	boolean pause;
+	float deathAnimTimer;
+	float invulnTimer;
+	TrueTypeFont bigFont;
+	
+	
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game) throws SlickException {
 		level = 1;
+		java.awt.Font awtFont = new java.awt.Font("Serif", java.awt.Font.PLAIN, 60);
+		bigFont =  new TrueTypeFont(awtFont, false);
+		try {
+			lm = new LevelModel(LevelList.get(level));
+		} catch (ValidationException e) {
+			e.printStackTrace();
+		}
+	}
+	public void changeLevel(int level) {
+		this.level = level;
 		try {
 			lm = new LevelModel(LevelList.get(level));
 		} catch (ValidationException e) {
@@ -50,24 +67,27 @@ public class GameState extends BasicGameState{
 		super.enter(container, game);
 		lives = 3;
 		timer = 999;
+		pause = true;
+		invulnTimer = 0;
+		deathAnimTimer = 0;
 		player = new Entity(new Component[] {
 			new Player(((BreakoutGame)game).controller),
 			new Box(container.getWidth()/3f, container.getHeight()-3*8-32, 24, 32),
 			new Velocity(0,0)
 		});
 		ball = new Entity(new Component[] {
-			new Box(container.getWidth()/2f, container.getHeight()/2f, 24, 24),	
+			new Box(container.getWidth()/2f, container.getHeight()-3*8-32-8, 24, 24),	
 			new Velocity(0,0),
 			new Mass(1f)
 		});
 		wallEntities = new Entity[] {
 			new Entity(new Component[] {
-				new Box(0,0,3*8,container.getHeight()),
+				new Box(0,0,4*8,container.getHeight()),
 				new Velocity(0,0),
 				new Mass(-1f)
 			}),
 			new Entity(new Component[] {
-				new Box(container.getWidth()-3*8,0,3*8,container.getHeight()),
+				new Box(container.getWidth()-4*8,0,4*8,container.getHeight()),
 				new Velocity(0,0),
 				new Mass(-1f)
 			}),
@@ -89,9 +109,8 @@ public class GameState extends BasicGameState{
 		if(container.getInput().isKeyDown(Input.KEY_SLASH)) {
 			game.enterState(3);	
 		}
-		if(level <= LevelList.levelMax) {
-			timer -= delta/87f;
-		}
+		deathAnimTimer -= delta/87f;
+		invulnTimer -= delta/87f;
 		Result<Component, NoSuchElementException> playerAI_R = player.getTraitByID(TRAIT.AI);
 		if(playerAI_R.is_ok()) {
 			AI playerAI = (AI)playerAI_R.unwrap();
@@ -115,6 +134,15 @@ public class GameState extends BasicGameState{
 				}
 			}
 		}
+		if(pause) {
+			if(((BreakoutGame)game).controller.buttonPressed(BreakoutGame.KEY_ACT)) {
+				pause = false;
+			}
+			return;
+		}
+		if(level <= LevelList.levelMax) {
+			timer -= delta/87f;
+		}
 		Result<Component, NoSuchElementException> ballBox_R = ball.getTraitByID(TRAIT.BOX);
 		Result<Component, NoSuchElementException> ballVel_R = ball.getTraitByID(TRAIT.VELOCITY);
 		Result<Component, NoSuchElementException> ballMass_R = ball.getTraitByID(TRAIT.MASS);
@@ -137,7 +165,11 @@ public class GameState extends BasicGameState{
 					Mass eMass = (Mass)eMass_R.unwrap();
 					if(ballBox.r.intersects(eBox.r)) {
 						if(timer > 0 || eBox.r.getMinY() == 0) {
-							Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							if(eBox.r.getCenterY() > container.getHeight()*2/3f) {
+								Physics.assertDirectionInelasticCollision(Physics.DIRECTION.Y_MINUS, eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							} else {
+								Physics.doInelasticCollision(eBox, eVel, eMass, ballBox, ballVel, ballMass, delta, 0.98f);
+							}
 						}
 					}
 				}
@@ -176,20 +208,22 @@ public class GameState extends BasicGameState{
 						}
 					}
 				} else {
-					if(playerBox.r.intersects(ballBox.r) || ballBox.r.getMinY() > container.getHeight()) {
+					if((playerBox.r.intersects(ballBox.r) || ballBox.r.getMinY() > container.getHeight()) && invulnTimer < 0) {
 						timer = Math.max(300,timer);
-						player = new Entity(new Component[] {
-							new Player(((BreakoutGame)game).controller),
-							new Box(container.getWidth()/3f, container.getHeight()-3*8-32, 24, 32),
-							new Velocity(0,0)
-						});
-						ball = new Entity(new Component[] {
-							new Box(container.getWidth()/2f, container.getHeight()/2f, 24, 24),	
-							new Velocity(0,0),
-							new Mass(1f)
-						});
-						if(level <= LevelList.levelMax) {
+						if(ballBox.r.getMinY() > container.getHeight()) {
+							ball = new Entity(new Component[] {
+									new Box(container.getWidth()/2f, container.getHeight()-3*8-32-8, 24, 24),	
+									new Velocity(0,0),
+									new Mass(1f)
+								});
+								pause = true;
+						} else {
+							ballVel.y -= 1;
+						}
+						if(level <= LevelList.levelMax && invulnTimer < 0) {
 							lives--;
+							invulnTimer = 20;
+							deathAnimTimer = 10;
 						}
 						if(lives < 0) {
 							game.enterState(1, new FadeOutTransition(), new EmptyTransition());
@@ -230,7 +264,17 @@ public class GameState extends BasicGameState{
 		
 		Result<Component, NoSuchElementException> playerRect = player.getTraitByID(TRAIT.BOX);
 		if(playerRect.is_ok()) {
-			g.draw(((Box)playerRect.unwrap()).r);
+			Rectangle playerBox = ((Box)playerRect.unwrap()).r;
+			if(deathAnimTimer > 0) {
+				g.setColor(Color.red);
+				g.fill(new Circle(playerBox.getCenterX(), playerBox.getCenterY(), 200*(5-Math.abs(deathAnimTimer-5))+30));
+			} else {
+				if(invulnTimer > 0) {
+					g.setColor(Color.cyan);
+				}
+				g.draw(playerBox);
+			}
+			g.setColor(Color.white);
 		}
 		Result<Component, NoSuchElementException> ballRect = ball.getTraitByID(TRAIT.BOX);
 		if(ballRect.is_ok()) {
@@ -259,7 +303,15 @@ public class GameState extends BasicGameState{
 			}
 		}
 		g.setColor(Color.white);
-		
+		g.drawString(LevelList.getName(level), container.getWidth()/2f, 16);
+		if(pause && timer == 999) {
+			org.newdawn.slick.Font oldFont = g.getFont();
+			g.setFont(bigFont);
+			g.scale(3,3);
+			g.drawString(""+level, container.getWidth()/9f, container.getHeight()/8f);
+			g.scale(1/3f,1/3f);
+			g.setFont(oldFont);
+		}
 	}
 
 	@Override
