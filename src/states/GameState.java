@@ -303,6 +303,7 @@ public class GameState extends BasicGameState{
 			}
 		}
 		g.setColor(Color.white);
+		g.drawString(LevelList.getName(level), container.getWidth()/2f, 16);
 		if(pause && timer == 999) {
 			org.newdawn.slick.Font oldFont = g.getFont();
 			g.setFont(bigFont);
