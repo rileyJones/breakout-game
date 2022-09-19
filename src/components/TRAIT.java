@@ -4,5 +4,6 @@ public enum TRAIT{
 	VELOCITY,
 	BOX,
 	MASS,
-	AI
+	AI,
+	ANIMATION
 }

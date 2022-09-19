@@ -8,6 +8,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
@@ -78,7 +79,9 @@ public class GameState extends BasicGameState{
 		ball = new Entity(new Component[] {
 			new Box(container.getWidth()/2f, container.getHeight()-3*8-32-8, 24, 24),	
 			new Velocity(0,0),
-			new Mass(1f)
+			new Mass(1f),
+			new EchoAI(new int[] {0, 500, 2}),
+			new AnimComponent(new SpriteSheet("assets/Ball.png", 12, 12))
 		});
 		wallEntities = new Entity[] {
 			new Entity(new Component[] {
@@ -214,7 +217,9 @@ public class GameState extends BasicGameState{
 							ball = new Entity(new Component[] {
 									new Box(container.getWidth()/2f, container.getHeight()-3*8-32-8, 24, 24),	
 									new Velocity(0,0),
-									new Mass(1f)
+									new Mass(1f),
+									new EchoAI(new int[] {0, 500, 2}),
+									new AnimComponent(new SpriteSheet("assets/Ball.png", 12, 12))
 								});
 								pause = true;
 						} else {
@@ -240,6 +245,16 @@ public class GameState extends BasicGameState{
 				e.printStackTrace();
 			}
 			game.enterState(0, new FadeOutTransition(), new FadeInTransition());
+		}
+		updateAnimations(container, game, delta);
+	}
+	public void updateAnimations(GameContainer container, StateBasedGame game, int delta) {
+		Result<Component, NoSuchElementException> ballAnim_R = ball.getTraitByID(TRAIT.ANIMATION);
+		Result<Component, NoSuchElementException> ballAI_R = ball.getTraitByID(TRAIT.AI);
+		if(ballAnim_R.is_ok() && ballAI_R.is_ok()) {
+			AnimComponent ballAnim = (AnimComponent)ballAnim_R.unwrap();
+			AI ballAI = (AI)ballAI_R.unwrap();
+			ballAnim.update(delta, ballAI);
 		}
 	}
 	
@@ -277,8 +292,11 @@ public class GameState extends BasicGameState{
 			g.setColor(Color.white);
 		}
 		Result<Component, NoSuchElementException> ballRect = ball.getTraitByID(TRAIT.BOX);
-		if(ballRect.is_ok()) {
-			g.draw(((Box)ballRect.unwrap()).r);
+		Result<Component, NoSuchElementException> ballAnim_R = ball.getTraitByID(TRAIT.ANIMATION);
+		if(ballRect.is_ok() && ballAnim_R.is_ok()) {
+			AnimComponent ballAnim = (AnimComponent)ballAnim_R.unwrap();
+			Box ballBox = (Box)ballRect.unwrap();
+			ballAnim.render(g, (int)(ballBox.r.getX()), (int)(ballBox.r.getY()), 2);
 		}
 		for(Entity e: wallEntities) {
 			Result<Component, NoSuchElementException> eBox_R = e.getTraitByID(TRAIT.BOX);

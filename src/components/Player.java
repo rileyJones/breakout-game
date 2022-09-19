@@ -219,4 +219,9 @@ public class Player extends AI{
 		System.out.println("HAHA nice try");
 		return null;
 	}
+
+	@Override
+	public int[] getAnimNum() {
+		return new int[]{0,0,0};
+	}
 }
