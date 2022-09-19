@@ -79,8 +79,8 @@ public class Physics {
 	}
 	
 	public static void doAcceleration(Box aBox, Velocity aVel, float x, float y, int delta) {
-		aVel.x += x;
-		aVel.y += y;
+		aVel.x += x*delta;
+		aVel.y += y*delta;
 		aBox.r.setCenterX(
 				aBox.r.getCenterX() + x*delta*delta/2.0f
 			);
